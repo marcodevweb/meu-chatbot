@@ -15,6 +15,20 @@ app.listen(port, () => {
     console.log(`Servidor de monitoramento rodando na porta ${port}`);
 });
 
+// --- SISTEMA ANTI-HIBERNAÇÃO (KEEP-ALIVE) ---
+// Isso faz o bot "se chamar" a cada 10 minutos para não deixar o Render desligar
+const https = require('https');
+const RENDER_URL = 'https://meu-chatbot-sovy.onrender.com'; // Sua URL do Render
+
+setInterval(() => {
+    https.get(RENDER_URL, (res) => {
+        console.log(`Ping de auto-atendimento (Status: ${res.statusCode}) - Mantendo o bot acordado...`);
+    }).on('error', (err) => {
+        console.log('Erro no ping de auto-atendimento: ' + err.message);
+    });
+}, 10 * 60 * 1000); // 10 minutos (Render dorme após 15min)
+// --------------------------------------------
+
 console.log('Iniciando o bot...');
 // Inicializa o cliente do WhatsApp
 const client = new Client({
