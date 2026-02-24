@@ -44,10 +44,13 @@ const client = new Client({
             '--no-zygote',
             '--disable-gpu',
             '--single-process',
-            '--disable-setuid-sandbox',
-            '--no-sandbox',
         ],
     }
+});
+
+// LOG DE PROGRESSO
+client.on('loading_screen', (percent, message) => {
+    console.log(`[Progresso] ${percent}% - ${message}`);
 });
 
 client.on('qr', (qr) => {
@@ -55,12 +58,12 @@ client.on('qr', (qr) => {
     qrcode.generate(qr, { small: true });
 });
 
-client.on('ready', () => {
-    console.log('!!! BOT ESTÁ ONLINE E PRONTO PARA RESPONDER !!!');
+client.on('authenticated', () => {
+    console.log('Autenticado com sucesso! Sincronizando dados...');
 });
 
-client.on('authenticated', () => {
-    console.log('Autenticado com sucesso!');
+client.on('ready', () => {
+    console.log('!!! BOT ESTÁ ONLINE E PRONTO PARA RESPONDER !!!');
 });
 
 client.on('auth_failure', msg => {
@@ -91,6 +94,7 @@ client.on('message', async msg => {
 
         if (chat.isGroup || sender === 'status@broadcast') return;
 
+        // Gatilho 1: Boas vindas
         if (text.includes('oii anna') || text.includes('conteúdos sem censura')) {
             console.log(`[Ação] Enviando boas-vindas para ${sender}`);
             const media = await MessageMedia.fromUrl(videoUrl);
@@ -98,6 +102,7 @@ client.on('message', async msg => {
             await client.sendMessage(sender, mensagemBoasVindas);
         }
 
+        // Gatilho 2: Menu
         else if (text.includes('eu quero') || text.includes('quero assinar')) {
             console.log(`[Ação] Enviando menu para ${sender}`);
             const menuPlanos = `💎 *MEUS PLANOS EXCLUSIVOS* 💎
@@ -107,6 +112,7 @@ client.on('message', async msg => {
             await client.sendMessage(sender, menuPlanos);
         }
 
+        // Gatilho 3: Pix
         else if (text === '1' || text === '2') {
             const valor = text === '1' ? '19,90' : '49,90';
             const chavePix = "manusoares1442@gmail.com";
@@ -116,6 +122,7 @@ client.on('message', async msg => {
             await client.sendMessage(sender, `\n⚠️ Envie o comprovante aqui para liberar o acesso!`);
         }
 
+        // Gatilho 4: Comprovante
         else if (msg.hasMedia && (msg.type === 'image' || msg.type === 'document')) {
             console.log(`[Ação] Comprovante recebido de ${sender}`);
             const link = "https://drive.google.com/drive/folders/1cHdlEY_z74IFBwfm47Vjzesuo1RKE7JT?usp=sharing";
@@ -127,9 +134,4 @@ client.on('message', async msg => {
 });
 
 console.log('Inicializando...');
-client.initialize().catch(err => {
-    console.error('Erro catastrófico no initialize:', err);
-    // Tenta reiniciar após 10 segundos se falhar
-    setTimeout(() => client.initialize(), 10000);
-});
-
+client.initialize();
